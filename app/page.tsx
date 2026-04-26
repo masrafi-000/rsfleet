@@ -1,7 +1,9 @@
-
+import Hero from "@/components/shared/home/hero";
 
 export default function Home() {
   return (
-   <div>hello world</div>
+    <main>
+      <Hero />
+    </main>
   );
 }
