@@ -16,6 +16,7 @@ import {
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
 
 const navItems = [
   { title: "Home", href: "/" },
@@ -37,13 +38,15 @@ const NavbarMain = () => {
       <div className="container mx-auto flex h-16 items-center justify-between">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center space-x-2 transition-transform hover:scale-105">
-            <div className="flex items-center gap-1 border-b-2 border-foreground pb-1">
-              <span className="text-3xl font-black tracking-tighter text-blue-600 leading-none">EURO</span>
-              <div className="flex flex-col justify-center">
-                <span className="text-[10px] font-bold leading-none tracking-widest text-foreground uppercase">Truck</span>
-                <span className="text-[10px] font-bold leading-none tracking-widest text-foreground uppercase">Service</span>
-              </div>
-            </div>
+            <Image 
+              src="/images/logo.png" 
+              alt="EURO TRUCK SERVICE" 
+              width={180} 
+              height={40} 
+              priority
+              style={{ width: "180px", height: "auto" }}
+              className="object-contain"
+            />
           </Link>
 
           <NavigationMenu className="hidden md:flex">
@@ -101,11 +104,14 @@ const NavbarMain = () => {
                   Use this menu to navigate the site and contact us.
                 </SheetDescription>
                 <div className="flex items-center gap-1 border-b-2 border-slate-900 pb-1 w-fit">
-                  <span className="text-2xl font-black tracking-tighter text-blue-600 leading-none">EURO</span>
-                  <div className="flex flex-col justify-center">
-                    <span className="text-[8px] font-bold leading-none tracking-widest text-slate-900 uppercase">Truck</span>
-                    <span className="text-[8px] font-bold leading-none tracking-widest text-slate-900 uppercase">Service</span>
-                  </div>
+                  <Image 
+                    src="/images/logo.png" 
+                    alt="EURO TRUCK SERVICE" 
+                    width={140} 
+                    height={30} 
+                    style={{ width: "140px", height: "auto" }}
+                    className="object-contain"
+                  />
                 </div>
               </SheetHeader>
               
