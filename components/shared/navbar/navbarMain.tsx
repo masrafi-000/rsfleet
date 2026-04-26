@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { Menu } from "lucide-react"
+import { ChevronDown, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   NavigationMenu,
@@ -13,26 +13,27 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { cn } from "@/lib/utils"
 
 const navItems = [
-  { title: "Главная", href: "/" },
-  { title: "Каталог", href: "/catalog", 
+  { title: "Home", href: "/" },
+  { title: "Catalog", href: "/catalog", 
     items: [
-      { title: "Легковые", href: "/catalog/cars", description: "Аренда легковых автомобилей для города." },
-      { title: "Внедорожники", href: "/catalog/suv", description: "Мощные автомобили для любых дорог." },
-      { title: "Микроавтобусы", href: "/catalog/vans", description: "Для больших компаний и поездок." },
+      { title: "Passenger Cars", href: "/catalog/cars", description: "City car rentals for your comfort." },
+      { title: "SUVs", href: "/catalog/suv", description: "Powerful vehicles for any terrain." },
+      { title: "Minivans", href: "/catalog/vans", description: "Perfect for groups and long trips." },
     ]
   },
-  { title: "Услуги", href: "/services" },
-  { title: "О нас", href: "/about" },
-  { title: "Контакты", href: "/contacts" },
+  { title: "Services", href: "/services" },
+  { title: "About Us", href: "/about" },
+  { title: "Contact", href: "/contacts" },
 ]
 
 const NavbarMain = () => {
   return (
-    <div className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+    <div className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 px-2">
       <div className="container mx-auto flex h-16 items-center justify-between">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center space-x-2 transition-transform hover:scale-105">
@@ -82,30 +83,85 @@ const NavbarMain = () => {
         <div className="flex items-center gap-4">
           <div className="hidden items-center gap-2 md:flex">
             <Button variant="default" className="ml-2 px-8">
-              Заказать звонок
+              Request a Call
             </Button>
           </div>
 
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
+              <Button variant="ghost" size="icon" className="md:hidden hover:bg-transparent">
                 <Menu className="h-6 w-6" />
                 <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right">
-              <div className="flex flex-col gap-4 mt-8">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.title}
-                    href={item.href}
-                    className="text-lg font-medium hover:text-primary transition-colors"
-                  >
-                    {item.title}
-                  </Link>
-                ))}
-                <hr className="my-2" />
-                <Button className="w-full">Заказать авто</Button>
+            <SheetContent side="right" className="w-[300px] sm:w-[400px] flex flex-col p-0 border-l shadow-2xl">
+              <SheetHeader className="p-6 border-b bg-white text-left">
+                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                <SheetDescription className="sr-only">
+                  Use this menu to navigate the site and contact us.
+                </SheetDescription>
+                <div className="flex items-center gap-1 border-b-2 border-slate-900 pb-1 w-fit">
+                  <span className="text-2xl font-black tracking-tighter text-blue-600 leading-none">EURO</span>
+                  <div className="flex flex-col justify-center">
+                    <span className="text-[8px] font-bold leading-none tracking-widest text-slate-900 uppercase">Truck</span>
+                    <span className="text-[8px] font-bold leading-none tracking-widest text-slate-900 uppercase">Service</span>
+                  </div>
+                </div>
+              </SheetHeader>
+              
+              <nav className="flex-1 overflow-y-auto py-6 px-6 bg-white">
+                <div className="flex flex-col gap-2">
+                  {navItems.map((item) => (
+                    <div key={item.title} className="flex flex-col border-b border-slate-50 last:border-0">
+                      {item.items ? (
+                        <Collapsible className="w-full group/collapsible">
+                          <CollapsibleTrigger asChild>
+                            <Button variant="ghost" className="w-full flex items-center justify-between py-6 px-0 text-lg font-bold text-slate-900 hover:bg-transparent hover:text-blue-600 transition-all">
+                              {item.title}
+                              <ChevronDown className="h-5 w-5 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
+                            </Button>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent className="flex flex-col gap-1 pl-4 pb-4 animate-in fade-in-0 zoom-in-95 duration-200">
+                            {item.items.map((subItem) => (
+                              <Link
+                                key={subItem.title}
+                                href={subItem.href}
+                                className="py-2 text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors"
+                              >
+                                {subItem.title}
+                              </Link>
+                            ))}
+                          </CollapsibleContent>
+                        </Collapsible>
+                      ) : (
+                        <Link
+                          href={item.href}
+                          className="group flex items-center justify-between py-4 text-lg font-bold text-slate-900 transition-all hover:text-blue-600"
+                        >
+                          <span className="relative inline-block">
+                            {item.title}
+                            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+                          </span>
+                        </Link>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </nav>
+
+              <div className="p-8 bg-slate-50 border-t space-y-8">
+                <div className="space-y-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Get in Touch</p>
+                  <div className="space-y-3">
+                    <div className="flex flex-col gap-1">
+                      <p className="text-lg font-black text-slate-900 tracking-tight">+7 (708) 51 51 518</p>
+                      <p className="text-lg font-black text-slate-900 tracking-tight">+7 (700) 51 51 518</p>
+                    </div>
+                  </div>
+                </div>
+                <Button className="w-full h-14 text-base font-black transition-all active:scale-[0.98]">
+                  Request a Call
+                </Button>
               </div>
             </SheetContent>
           </Sheet>

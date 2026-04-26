@@ -18,7 +18,7 @@ const Hero = () => {
             </p>
             <div className="pt-2 md:pt-4">
               <Button size="lg" className="text-white text-base md:text-lg px-8 h-12 md:h-14">
-                Чета сделать
+                Learn More
               </Button>
             </div>
           </div>
