@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import {
   Map,
+  MapControls,
   MapMarker,
   MarkerContent,
   MarkerPopup,
@@ -226,7 +227,7 @@ const Location = () => {
                   alt={activeLocation.name}
                   className="object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
                 <div className="absolute bottom-3 left-4 text-white">
                   <p className="text-xs font-semibold uppercase tracking-widest opacity-80">
                     {activeLocation.country}
@@ -285,6 +286,13 @@ const Location = () => {
               }
               className="w-full h-full"
             >
+              <MapControls
+                position="bottom-right"
+                showZoom
+                showCompass
+                showLocate
+                showFullscreen
+        />
               {/* Style switcher */}
               <div className="absolute top-2 right-2 z-10">
                 <select
@@ -354,44 +362,64 @@ const Location = () => {
           </div>
         </div>
 
-        {/* ── 9 Location Cards — horizontal scroll on mobile, 3-col grid on desktop ── */}
-        <div className="mt-8 md:mt-12 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-3">
-          {locations.map((loc) => (
-            <button
-              key={loc.id}
-              onClick={() => setActiveId(loc.id)}
-              className={`
-                group flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center
-                transition-all duration-200 cursor-pointer
-                ${
-                  loc.id === activeId
-                    ? "bg-primary text-primary-foreground border-primary shadow-md"
-                    : "bg-white border-slate-100 text-foreground hover:border-primary/40 hover:shadow-sm"
-                }
-              `}
-            >
-              <div
-                className={`
-                flex items-center justify-center size-8 rounded-full font-black text-sm
-                ${loc.id === activeId ? "bg-white/20 text-primary-foreground" : "bg-slate-100 text-foreground group-hover:bg-primary/10"}
-              `}
-              >
-                {loc.id}
-              </div>
-              <div className="leading-tight">
-                <p
-                  className={`text-[11px] font-black uppercase tracking-tight ${loc.id === activeId ? "text-primary-foreground" : "text-foreground"}`}
+        {/* ── 9 Location Cards — horizontal scroll ── */}
+        <div className="mt-10 md:mt-14 -mx-4 px-4 overflow-x-auto pb-3">
+          <div className="flex gap-4 w-max lg:w-full lg:grid lg:grid-cols-9">
+            {locations.map((loc) => {
+              const isActive = loc.id === activeId;
+              return (
+                <button
+                  key={loc.id}
+                  onClick={() => setActiveId(loc.id)}
+                  className={`
+                    group relative flex flex-col w-[160px] lg:w-auto rounded-2xl
+                    overflow-hidden  text-left transition-all duration-300
+                    ${isActive
+                      ? " shadow-lg shadow-primary/15"
+                      : " bg-white hover:border-primary/30 hover:shadow-md"
+                    }
+                  `}
                 >
-                  {loc.city}
-                </p>
-                <p
-                  className={`text-[9px] uppercase tracking-widest ${loc.id === activeId ? "text-primary-foreground/70" : "text-muted-foreground"}`}
-                >
-                  {loc.country}
-                </p>
-              </div>
-            </button>
-          ))}
+                  {/* Image */}
+                  <div className="relative h-24 w-full shrink-0">
+                    <Image
+                      fill
+                      src={loc.image}
+                      alt={loc.city}
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className={`absolute inset-0 ${isActive ? "bg-primary/30" : "bg-black/20 group-hover:bg-black/10"} transition-colors duration-300 `} />
+                    {/* Number badge */}
+                    <div className={`
+                      absolute top-2 left-2 size-6 rounded-full flex items-center justify-center
+                      text-[10px] font-black border-2 border-white shadow-sm
+                      ${isActive ? "bg-primary text-primary-foreground" : "bg-white text-foreground"}
+                    `}>
+                      {loc.id}
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className={`p-3 flex flex-col gap-1 ${isActive ? "bg-primary" : "bg-white"}`}>
+                    <p className={`text-[11px] font-black uppercase tracking-tight leading-tight truncate
+                      ${isActive ? "text-primary-foreground" : "text-foreground"}`}>
+                      {loc.city}
+                    </p>
+                    <div className="flex items-center gap-1">
+                      <Star className={`size-3 ${isActive ? "fill-white text-white" : "fill-amber-400 text-amber-400"}`} />
+                      <span className={`text-[10px] font-bold ${isActive ? "text-primary-foreground" : "text-foreground"}`}>
+                        {loc.rating}
+                      </span>
+                    </div>
+                    <p className={`text-[9px] uppercase tracking-widest truncate
+                      ${isActive ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                      {loc.hours}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
