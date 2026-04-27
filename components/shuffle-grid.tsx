@@ -1,19 +1,17 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { motion, LayoutGroup } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 
 export const ShuffleHero = ({
   subtitle = "Better every day",
   title = "Let's change it up a bit",
   description = "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Nam nobis in error repellat voluptatibus ad.",
-  
 }: {
   subtitle?: string;
   title?: string;
   description?: string;
- 
 }) => {
   return (
     <section className="w-full px-8 py-12 grid grid-cols-1 md:grid-cols-2 items-center gap-8">
@@ -42,86 +40,81 @@ export const ShuffleHero = ({
   );
 };
 
-const shuffle = (array: (typeof squareData)[0][]) => {
-  let currentIndex = array.length,
-    randomIndex;
-
-  while (currentIndex != 0) {
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-
-    [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex],
-      array[currentIndex],
-    ];
+// Fisher-Yates shuffle — returns a new array, never mutates
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
   }
-
-  return array;
+  return newArray;
 };
 
+// 16 items to fill the 4×4 grid perfectly
 const squareData = [
-  { id: 1, src: "/images/brands/DAF.png" },
-  { id: 2, src: "/images/brands/Freightliner.png" },
-  { id: 3, src: "/images/brands/Hino.png" },
-  { id: 4, src: "/images/brands/MAN.png" },
-  { id: 5, src: "/images/brands/Mercedes.png" },
-  { id: 6, src: "/images/brands/Peterbilt.png" },
-  { id: 7, src: "/images/brands/Scania.png" },
-  { id: 8, src: "/images/brands/Volvo.png" },
-  { id: 9, src: "/images/brands/Western.png" },
-  { id: 10, src: "/images/brands/ford.png" },
-  { id: 11, src: "/images/brands/honda.png" },
-  { id: 12, src: "/images/brands/tesla.png" },
+  { id: 1,  src: "/images/brands/MAN.png" },
+  { id: 2,  src: "/images/brands/Peterbilt.png" },
+  { id: 3,  src: "/images/brands/Scania.png" },
+  { id: 4,  src: "/images/brands/Volvo.png" },
+  { id: 5,  src: "/images/brands/Western.png" },
+  { id: 6,  src: "/images/brands/ford.png" },
+  { id: 7,  src: "/images/brands/honda.png" },
+  { id: 8,  src: "/images/brands/tesla.png" },
+  { id: 9,  src: "/images/brands/DAF.png" },
+  { id: 10, src: "/images/brands/Freightliner.png" },
+  { id: 11, src: "/images/brands/Hino.png" },
+  { id: 12, src: "/images/brands/Mercedes.png" },
 ];
 
-const generateSquares = (data: typeof squareData, shouldShuffle = true) => {
-  const displayData = shouldShuffle ? shuffle([...data]) : data;
-  return displayData.map((sq) => (
-    <motion.div
-      key={sq.id}
-      layout
-      transition={{ duration: 1.5, type: "spring" }}
-      className="aspect-square w-full rounded-xl overflow-hidden bg-white border border-slate-100 p-3 md:p-5 flex items-center justify-center"
-      style={{
-        backgroundImage: `url(${sq.src})`,
-        backgroundSize: "contain",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    ></motion.div>
-  ));
-};
-
-const ShuffleGrid = () => {
+export const ShuffleGrid = () => {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [isHovered, setIsHovered] = useState(false);
-  // Initialize with false to prevent Math.random() mismatch during hydration
-  const [squares, setSquares] = useState(generateSquares(squareData, false));
+  const isHoveredRef = useRef(false);
 
-  const shuffleSquares = () => {
-    if (!isHovered) {
-      setSquares(generateSquares(squareData));
-    }
-    timeoutRef.current = setTimeout(shuffleSquares, 5000);
-  };
+  // Initialize with the original order — no shuffle on SSR to avoid hydration mismatch
+  const [items, setItems] = useState(squareData);
 
   useEffect(() => {
-    shuffleSquares();
+    const tick = () => {
+      if (!isHoveredRef.current) {
+        // Shuffle only the order; keys stay the same so Framer Motion animates positions
+        setItems((prev) => shuffleArray(prev));
+      }
+      timeoutRef.current = setTimeout(tick, 5000);
+    };
+
+    timeoutRef.current = setTimeout(tick, 5000);
 
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [isHovered]);
+  }, []); // ← runs ONCE on mount; isHoveredRef is read inside the closure without causing re-runs
 
   return (
-    <div 
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className="grid grid-cols-4 gap-2 md:gap-4 cursor-pointer"
-    >
-      {squares.map((sq) => sq)}
-    </div>
+    <LayoutGroup>
+      {/* overflow-anchor: none prevents the browser's scroll anchoring
+          algorithm from jumping the page when Framer Motion repositions cards */}
+      <div
+        onMouseEnter={() => { isHoveredRef.current = true; }}
+        onMouseLeave={() => { isHoveredRef.current = false; }}
+        className="grid grid-cols-4 gap-2 md:gap-4 cursor-pointer"
+        style={{ overflowAnchor: "none" }}
+      >
+        {items.map((sq) => (
+          <motion.div
+            key={sq.id}
+            layoutId={`brand-${sq.id}`}
+            transition={{ duration: 1.2, type: "spring", bounce: 0.2 }}
+            className="aspect-square w-full rounded-xl overflow-hidden bg-white border border-slate-100 p-3 md:p-5"
+            style={{
+              backgroundImage: `url(${sq.src})`,
+              backgroundSize: "contain",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              overflowAnchor: "none",
+            }}
+          />
+        ))}
+      </div>
+    </LayoutGroup>
   );
 };

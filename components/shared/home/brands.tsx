@@ -4,7 +4,7 @@ import { ShuffleHero } from "@/components/shuffle-grid";
 
 const Brands = () => {
   return (
-    <section className="bg-white py-12 md:py-20 lg:py-32 overflow-hidden">
+    <section className="bg-white py-10 md:py-12 lg:py-16 overflow-hidden">
       <div className="container mx-auto">
         <ShuffleHero
           subtitle="Expertise Across All Brands"

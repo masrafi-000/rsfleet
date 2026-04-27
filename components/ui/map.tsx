@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 "use client";
 
 import MapLibreGL, { type PopupOptions, type MarkerOptions } from "maplibre-gl";
@@ -998,6 +999,7 @@ function MapPopup({
       popup.setLngLat([longitude, latitude]);
     }
 
+    // eslint-disable-next-line react-hooks/refs
     if (prev.offset !== popupOptions.offset) {
       popup.setOffset(popupOptions.offset ?? 16);
     }
@@ -1363,6 +1365,7 @@ function MapArc<T extends MapArcDatum = MapArcDatum>({
   );
 
   const latestRef = useRef({ data, onClick, onHover });
+  // eslint-disable-next-line react-hooks/refs
   latestRef.current = { data, onClick, onHover };
 
   // Add source and layers on mount.
