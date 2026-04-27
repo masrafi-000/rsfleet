@@ -19,7 +19,7 @@ export const ShuffleHero = ({
         <span className="block mb-4 text-xs md:text-sm text-primary font-medium">
           {subtitle}
         </span>
-        <h3 className="text-4xl md:text-6xl font-semibold text-foreground tracking-tight">
+        <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground tracking-tight">
           {title}
         </h3>
         <p className="text-base md:text-lg text-muted-foreground my-4 md:my-6 leading-relaxed">

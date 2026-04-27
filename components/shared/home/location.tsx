@@ -5,193 +5,393 @@ import {
   Map,
   MapMarker,
   MarkerContent,
-  MarkerLabel,
   MarkerPopup,
   useMap,
   type MapRef,
 } from "@/components/ui/map";
-import { Clock, ExternalLink, MapPin, Navigation, Star } from "lucide-react";
+import { Clock, ExternalLink, Navigation, Star } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
-// Silences the "Image X could not be loaded" console errors from the
-// OpenFreeMap Liberty style referencing sprite icons that aren't bundled.
+// ─── Map style options ───────────────────────────────────────────────────────
+const mapStyles = {
+  default: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+  openstreetmap: "https://tiles.openfreemap.org/styles/bright",
+  openstreetmap3d: "https://tiles.openfreemap.org/styles/liberty",
+};
+type StyleKey = keyof typeof mapStyles;
+
+// ─── 9 Service Locations ─────────────────────────────────────────────────────
+const locations = [
+  {
+    id: 1,
+    name: "RS Fleet — Zurich Central",
+    city: "Zurich",
+    country: "Switzerland",
+    hours: "8:00 AM – 6:00 PM",
+    rating: 4.9,
+    reviews: 156,
+    lng: 8.5417,
+    lat: 47.3769,
+    image:
+      "https://images.unsplash.com/photo-1485575301924-6891ef935dcd?q=80&w=600&fit=crop",
+  },
+  {
+    id: 2,
+    name: "RS Fleet — Geneva Hub",
+    city: "Geneva",
+    country: "Switzerland",
+    hours: "7:00 AM – 7:00 PM",
+    rating: 4.8,
+    reviews: 98,
+    lng: 6.1432,
+    lat: 46.2044,
+    image:
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=600&fit=crop",
+  },
+  {
+    id: 3,
+    name: "RS Fleet — Basel Workshop",
+    city: "Basel",
+    country: "Switzerland",
+    hours: "8:00 AM – 5:00 PM",
+    rating: 4.7,
+    reviews: 74,
+    lng: 7.5886,
+    lat: 47.5596,
+    image:
+      "https://images.unsplash.com/photo-1581093450021-4a7360e9a6b5?q=80&w=600&fit=crop",
+  },
+  {
+    id: 4,
+    name: "RS Fleet — Bern Service",
+    city: "Bern",
+    country: "Switzerland",
+    hours: "8:00 AM – 6:00 PM",
+    rating: 4.8,
+    reviews: 112,
+    lng: 7.4474,
+    lat: 46.9481,
+    image:
+      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=600&fit=crop",
+  },
+  {
+    id: 5,
+    name: "RS Fleet — Lausanne Center",
+    city: "Lausanne",
+    country: "Switzerland",
+    hours: "7:30 AM – 6:30 PM",
+    rating: 4.6,
+    reviews: 63,
+    lng: 6.6323,
+    lat: 46.5197,
+    image:
+      "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=600&fit=crop",
+  },
+  {
+    id: 6,
+    name: "RS Fleet — Lucerne Depot",
+    city: "Lucerne",
+    country: "Switzerland",
+    hours: "8:00 AM – 5:30 PM",
+    rating: 4.9,
+    reviews: 89,
+    lng: 8.3093,
+    lat: 47.0502,
+    image:
+      "https://images.unsplash.com/photo-1609429019995-8c40f49535a5?q=80&w=600&fit=crop",
+  },
+  {
+    id: 7,
+    name: "RS Fleet — St. Gallen North",
+    city: "St. Gallen",
+    country: "Switzerland",
+    hours: "8:00 AM – 6:00 PM",
+    rating: 4.7,
+    reviews: 51,
+    lng: 9.3767,
+    lat: 47.4245,
+    image:
+      "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?q=80&w=600&fit=crop",
+  },
+  {
+    id: 8,
+    name: "RS Fleet — Winterthur Bay",
+    city: "Winterthur",
+    country: "Switzerland",
+    hours: "7:00 AM – 6:00 PM",
+    rating: 4.8,
+    reviews: 77,
+    lng: 8.7269,
+    lat: 47.5006,
+    image:
+      "https://images.unsplash.com/photo-1617788138017-80ad40651399?q=80&w=600&fit=crop",
+  },
+  {
+    id: 9,
+    name: "RS Fleet — Lugano South",
+    city: "Lugano",
+    country: "Switzerland",
+    hours: "8:00 AM – 5:00 PM",
+    rating: 4.6,
+    reviews: 42,
+    lng: 8.9511,
+    lat: 46.0037,
+    image:
+      "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?q=80&w=600&fit=crop",
+  },
+];
+
+// ─── Missing sprite image suppressor ─────────────────────────────────────────
 function MissingImageHandler() {
   const { map } = useMap();
-
   useEffect(() => {
     if (!map) return;
-
     const handle = (e: { id: string }) => {
       if (!map.hasImage(e.id)) {
-        // Add a 1×1 transparent PNG so the style doesn't break
         const empty = new ImageData(new Uint8ClampedArray(4), 1, 1);
         map.addImage(e.id, empty as unknown as HTMLImageElement);
       }
     };
-
     map.on("styleimagemissing", handle);
-    return () => { map.off("styleimagemissing", handle); };
+    return () => {
+      map.off("styleimagemissing", handle);
+    };
   }, [map]);
-
   return null;
 }
 
+// ─── Main Component ───────────────────────────────────────────────────────────
 const Location = () => {
   const mapRef = useRef<MapRef>(null);
+  const [mapStyle, setMapStyle] = useState<StyleKey>("default");
+  const [activeId, setActiveId] = useState<number>(1);
+  const selectedStyle = mapStyles[mapStyle];
+  const is3D = mapStyle === "openstreetmap3d";
 
-  // Coordinates for Zurich
-  const center: [number, number] = [8.5417, 47.3769];
+  const activeLocation =
+    locations.find((l) => l.id === activeId) ?? locations[0];
 
-  // OpenFreemap Liberty 3D Style
-  const openStreetMap3D = "https://tiles.openfreemap.org/styles/liberty";
-
+  // Fly to selected location
   useEffect(() => {
-    // Smoothly animate to a 3D perspective once loaded
-    mapRef.current?.easeTo({ pitch: 60, duration: 1500 });
-  }, []);
+    mapRef.current?.flyTo({
+      center: [activeLocation.lng, activeLocation.lat],
+      zoom: 14,
+      pitch: is3D ? 60 : 0,
+      duration: 1200,
+    });
+  }, [activeId, is3D, activeLocation.lng, activeLocation.lat]);
 
-  const serviceLocation = {
-    name: "RS Fleet Service",
-    label: "Main Workshop",
-    category: "Truck Repair & Maintenance",
-    rating: 4.9,
-    reviews: 156,
-    hours: "8:00 AM - 6:00 PM",
-    // New verified working image link
-    image:
-      "https://images.unsplash.com/photo-1485575301924-6891ef935dcd?q=80&w=800&auto=format&fit=crop",
-    lng: center[0],
-    lat: center[1],
-  };
+  // Initial 3D pitch animation
+  useEffect(() => {
+    const t = setTimeout(() => {
+      mapRef.current?.easeTo({ pitch: 0, duration: 1000 });
+    }, 500);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
     <section className="bg-slate-50 py-10 md:py-12 lg:py-16 overflow-hidden">
-      <div className="w-full pl-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-24 items-center">
-          {/* Left Column: Text Content */}
-          <div className="ml-50  space-y-8 order-2 lg:order-1">
-            <div className="space-y-4 text-center lg:text-left">
-              <h2 className="text-3xl md:text-5xl lg:text-7xl font-black tracking-tighter text-slate-900 uppercase leading-none">
-                Где мы?
-              </h2>
-              <div className="h-2 w-24 bg-blue-600 rounded-full mx-auto lg:mx-0" />
+      <div className="container mx-auto px-4">
+        {/* ── Section Header ── */}
+        <div className="mb-8 md:mb-12 text-center lg:text-left lg:max-w-xl">
+          <span className="block text-xs md:text-sm text-primary font-semibold uppercase tracking-widest mb-2">
+            Find Us
+          </span>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">
+            Our Service Locations
+          </h2>
+          <div className="h-1.5 w-20 bg-primary rounded-full mt-3 mx-auto lg:mx-0" />
+        </div>
+
+        {/* ── Two-column layout: text left, map right ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-stretch">
+          {/* Left: description + active location details */}
+          <div className="space-y-6 order-2 lg:order-1">
+            <div className="space-y-4 text-muted-foreground text-base md:text-lg leading-relaxed">
+              <p>
+                With service centers across Switzerland, RS Fleet ensures your
+                trucks and heavy vehicles are never far from expert care. Each
+                location is fully equipped for diagnostics, repair, and
+                preventative maintenance.
+              </p>
             </div>
 
-            <div className="space-y-6 text-slate-600 text-base md:text-lg leading-relaxed  lg:mx-0">
-              <p>
-                Our flagship truck repair center is strategically located in
-                Zurich&apos;s industrial district, providing easy access for
-                heavy-duty vehicles and long-haul trailers.
-              </p>
-              <p>
-                Equipped with 12 full-sized service bays and advanced diagnostic
-                computers, our facility is engineered to keep your fleet on the
-                road with minimal turnaround time.
-              </p>
-            </div>
-
-            <div className="pt-4 flex justify-center lg:justify-start">
-              <div className="flex items-center gap-3 text-slate-900 font-bold uppercase tracking-widest bg-white px-6 py-4">
-                <MapPin className="text-blue-600 animate-bounce" />
-                <span>Zurich, Switzerland</span>
+            {/* Active location detail card */}
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+              <div className="relative h-80 w-full">
+                <Image
+                  fill
+                  src={activeLocation.image}
+                  alt={activeLocation.name}
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                <div className="absolute bottom-3 left-4 text-white">
+                  <p className="text-xs font-semibold uppercase tracking-widest opacity-80">
+                    {activeLocation.country}
+                  </p>
+                  <h3 className="text-lg font-black uppercase leading-tight">
+                    {activeLocation.city}
+                  </h3>
+                </div>
+              </div>
+              <div className="p-4 space-y-3">
+                <p className="text-sm font-semibold text-foreground">
+                  {activeLocation.name}
+                </p>
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-1">
+                    <Star className="size-3.5 fill-amber-400 text-amber-400" />
+                    <span className="font-bold text-foreground">
+                      {activeLocation.rating}
+                    </span>
+                    <span className="text-muted-foreground">
+                      ({activeLocation.reviews} reviews)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <Clock className="size-3.5" />
+                    <span>{activeLocation.hours}</span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    className="flex-1 font-bold uppercase text-xs tracking-wide"
+                  >
+                    <Navigation className="size-3.5 mr-1" />
+                    Directions
+                  </Button>
+                  <Button size="sm" variant="outline" className="px-3">
+                    <ExternalLink className="size-3.5" />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Right Column: 3D Map with Proper Marker */}
-          <div className="h-[500px]  md:h-[600px] w-full  overflow-hidden  order-1 lg:order-2">
+          {/* Right: Map — fills full height of the left column */}
+          <div className="self-stretch min-h-[320px] sm:min-h-[420px] w-full rounded-2xl overflow-hidden shadow-lg order-1 lg:order-2 relative">
             <Map
               ref={mapRef}
-              center={center}
-              zoom={15}
-              pitch={60}
-              styles={{
-                light: openStreetMap3D,
-                dark: openStreetMap3D,
-              }}
+              center={[activeLocation.lng, activeLocation.lat]}
+              zoom={14}
+              pitch={0}
+              styles={
+                selectedStyle
+                  ? { light: selectedStyle, dark: selectedStyle }
+                  : undefined
+              }
               className="w-full h-full"
             >
+              {/* Style switcher */}
+              <div className="absolute top-2 right-2 z-10">
+                <select
+                  value={mapStyle}
+                  onChange={(e) => setMapStyle(e.target.value as StyleKey)}
+                  className="bg-background text-foreground rounded-md border px-2 py-1 text-sm shadow"
+                >
+                  <option value="default">Default</option>
+                  <option value="openstreetmap">OpenStreetMap</option>
+                  <option value="openstreetmap3d">3D View</option>
+                </select>
+              </div>
+
               <MissingImageHandler />
-              <MapMarker
-                longitude={serviceLocation.lng}
-                latitude={serviceLocation.lat}
-              >
-                <MarkerContent>
-                  {/* Proper Marker Design: 3D Pin Style */}
-                  <div className="relative group cursor-pointer transform transition-all duration-300 hover:scale-110">
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-1 bg-black/20 rounded-[100%] blur-[2px]" />
-                    <div className="bg-blue-600 p-2.5 rounded-t-full rounded-bl-full shadow-lg border-2 border-white rotate-45 flex items-center justify-center">
-                      <MapPin className="text-white size-5 -rotate-45" />
-                    </div>
-                  </div>
-                  <MarkerLabel
-                    position="bottom"
-                    className="mt-2 font-bold text-slate-900 bg-white/90 px-2 py-0.5 rounded-md shadow-sm border border-slate-100"
-                  >
-                    {serviceLocation.label}
-                  </MarkerLabel>
-                </MarkerContent>
 
-                <MarkerPopup className="w-72 p-0 overflow-hidden border-none shadow-[0_20px_50px_rgba(0,0,0,0.2)]">
-                  <div className="relative h-40 w-full">
-                    <Image
-                      fill
-                      src={serviceLocation.image}
-                      alt={serviceLocation.name}
-                      className="object-cover"
-                    />
-                    <div className="absolute top-2 left-2 bg-blue-600 text-white text-[9px] font-black uppercase px-2 py-1 rounded shadow-lg">
-                      Top Rated
+              {/* All markers */}
+              {locations.map((loc) => (
+                <MapMarker key={loc.id} longitude={loc.lng} latitude={loc.lat}>
+                  <MarkerContent>
+                    <button
+                      onClick={() => setActiveId(loc.id)}
+                      className={`
+                        flex items-center justify-center size-7 rounded-full border-2 border-white shadow-md
+                        font-black text-xs transition-all duration-200
+                        ${
+                          loc.id === activeId
+                            ? "bg-primary text-primary-foreground scale-125"
+                            : "bg-slate-800 text-white hover:scale-110"
+                        }
+                      `}
+                    >
+                      {loc.id}
+                    </button>
+                  </MarkerContent>
+                  <MarkerPopup className="w-56 p-0">
+                    <div className="relative h-24 overflow-hidden rounded-t-md">
+                      <Image
+                        fill
+                        src={loc.image}
+                        alt={loc.name}
+                        className="object-cover"
+                      />
                     </div>
-                  </div>
-                  <div className="space-y-4 p-5 bg-white">
-                    <div>
-                      <p className="text-blue-600 pb-1 text-[10px] font-black tracking-[0.2em] uppercase">
-                        {serviceLocation.category}
+                    <div className="p-3 space-y-1.5">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
+                        {loc.country}
                       </p>
-                      <h3 className="text-slate-900 leading-tight font-black uppercase text-lg italic">
-                        {serviceLocation.name}
-                      </h3>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1">
-                        <Star className="size-3.5 fill-amber-400 text-amber-400" />
-                        <span className="font-black text-slate-900 text-sm">
-                          {serviceLocation.rating}
-                        </span>
-                        <span className="text-slate-400 text-[10px] uppercase font-bold tracking-tighter">
-                          ({serviceLocation.reviews} Reviews)
+                      <p className="font-bold text-foreground text-sm">
+                        {loc.name}
+                      </p>
+                      <div className="flex items-center gap-1 text-xs">
+                        <Star className="size-3 fill-amber-400 text-amber-400" />
+                        <span className="font-semibold">{loc.rating}</span>
+                        <span className="text-muted-foreground">
+                          ({loc.reviews})
                         </span>
                       </div>
-                      <div className="flex items-center gap-1 text-[10px] font-black text-emerald-600 uppercase">
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Clock className="size-3" />
-                        <span>{serviceLocation.hours}</span>
+                        <span>{loc.hours}</span>
                       </div>
                     </div>
-
-                    <div className="flex gap-2 pt-1">
-                      <Button
-                        size="sm"
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-[10px] tracking-wider py-5 rounded-xl transition-all active:scale-95 shadow-md shadow-blue-200"
-                      >
-                        <Navigation className="size-3.5 mr-2" />
-                        Directions
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="px-3 border-slate-100 bg-slate-50 hover:bg-white text-slate-600 rounded-xl py-5 transition-all active:scale-95"
-                      >
-                        <ExternalLink className="size-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </MarkerPopup>
-              </MapMarker>
+                  </MarkerPopup>
+                </MapMarker>
+              ))}
             </Map>
           </div>
+        </div>
+
+        {/* ── 9 Location Cards — horizontal scroll on mobile, 3-col grid on desktop ── */}
+        <div className="mt-8 md:mt-12 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-3">
+          {locations.map((loc) => (
+            <button
+              key={loc.id}
+              onClick={() => setActiveId(loc.id)}
+              className={`
+                group flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center
+                transition-all duration-200 cursor-pointer
+                ${
+                  loc.id === activeId
+                    ? "bg-primary text-primary-foreground border-primary shadow-md"
+                    : "bg-white border-slate-100 text-foreground hover:border-primary/40 hover:shadow-sm"
+                }
+              `}
+            >
+              <div
+                className={`
+                flex items-center justify-center size-8 rounded-full font-black text-sm
+                ${loc.id === activeId ? "bg-white/20 text-primary-foreground" : "bg-slate-100 text-foreground group-hover:bg-primary/10"}
+              `}
+              >
+                {loc.id}
+              </div>
+              <div className="leading-tight">
+                <p
+                  className={`text-[11px] font-black uppercase tracking-tight ${loc.id === activeId ? "text-primary-foreground" : "text-foreground"}`}
+                >
+                  {loc.city}
+                </p>
+                <p
+                  className={`text-[9px] uppercase tracking-widest ${loc.id === activeId ? "text-primary-foreground/70" : "text-muted-foreground"}`}
+                >
+                  {loc.country}
+                </p>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
     </section>

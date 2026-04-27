@@ -43,8 +43,8 @@ const NavbarMain = () => {
               alt="EURO TRUCK SERVICE" 
               width={180} 
               height={40} 
+              className="object-contain"
               priority
-              className="object-contain w-[180px] h-auto"
             />
           </Link>
 
@@ -108,7 +108,6 @@ const NavbarMain = () => {
                     alt="EURO TRUCK SERVICE" 
                     width={140} 
                     height={30} 
-                    className="object-contain w-[140px] h-auto"
                   />
                 </div>
               </SheetHeader>

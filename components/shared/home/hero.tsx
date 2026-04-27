@@ -9,7 +9,7 @@ const Hero = () => {
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
           {/* Left Content */}
           <div className="flex-1 space-y-6 md:space-y-8 text-center lg:text-left z-10">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 leading-[1.2] lg:leading-[1.1]">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 leading-[1.2]">
               Affordable truck <br className="hidden lg:block" /> service
             </h1>
             <p className="max-w-2xl text-base sm:text-lg text-slate-500 leading-relaxed mx-auto lg:mx-0">
@@ -25,7 +25,7 @@ const Hero = () => {
 
           {/* Right Image */}
           <div className="flex-1 relative w-full min-h-[250px] sm:min-h-[350px] lg:h-[500px] mt-8 lg:mt-0">
-            <div className="absolute inset-0 lg:-right-[50%] md:w-[150%] lg:w-[180%] h-full flex justify-end lg:justify-start">
+            <div className="absolute inset-0 lg:right-[-50%] md:w-[150%] lg:w-[180%] h-full flex justify-end lg:justify-start">
               <Image
                 src={HeloImage}
                 alt="White Trucks Fleet"
