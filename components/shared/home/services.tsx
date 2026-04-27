@@ -63,7 +63,7 @@ const Services = () => {
               </CardHeader>
             </div>
             <div className="relative w-full md:w-[45%] h-[240px] md:h-auto self-center md:self-stretch overflow-visible">
-              <div className="absolute left-1/2 -translate-x-1/2 bottom-0 w-[110%] h-[100%] md:left-auto md:translate-x-0 md:right-[-20%] md:bottom-0 md:w-[140%] md:h-full transition-transform duration-700 ease-out group-hover:scale-105">
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-0 w-[110%] h-full md:left-auto md:translate-x-0 md:right-[-20%] md:bottom-0 md:w-[140%] md:h-full transition-transform duration-700 ease-out group-hover:scale-105">
                 <Image
                   src="/images/card-2.png"
                   alt="Car Wash"
@@ -113,7 +113,7 @@ const Services = () => {
               </CardHeader>
             </div>
             <div className="relative w-full md:w-[45%] h-[240px] md:h-auto self-center md:self-stretch overflow-visible">
-              <div className="absolute left-1/2 -translate-x-1/2 bottom-0 w-[100%] h-[100%] md:left-auto md:translate-x-0 md:right-[-2%] md:bottom-[-5%] md:w-[90%] md:h-full transition-transform duration-700 ease-out group-hover:scale-105">
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-0 w-full h-full md:left-auto md:translate-x-0 md:right-[-2%] md:bottom-[-5%] md:w-[90%] md:h-full transition-transform duration-700 ease-out group-hover:scale-105">
                 <Image
                   src="/images/card-4.png"
                   alt="Oil Change"
