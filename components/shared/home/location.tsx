@@ -225,6 +225,7 @@ const Location = () => {
                   fill
                   src={activeLocation.image}
                   alt={activeLocation.name}
+                  sizes="(max-width: 1024px) 100vw, 50vw"
                   className="object-cover"
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
@@ -333,6 +334,7 @@ const Location = () => {
                         fill
                         src={loc.image}
                         alt={loc.name}
+                        sizes="224px"
                         className="object-cover"
                       />
                     </div>
@@ -386,6 +388,7 @@ const Location = () => {
                       fill
                       src={loc.image}
                       alt={loc.city}
+                      sizes="(max-width: 640px) 160px, (max-width: 1024px) 33vw, 11vw"
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className={`absolute inset-0 ${isActive ? "bg-primary/30" : "bg-black/20 group-hover:bg-black/10"} transition-colors duration-300 `} />
